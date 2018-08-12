@@ -64,6 +64,16 @@ public:
    */
   void UpdateEKF(const Eigen::VectorXd &z);
 
+protected:
+  /**
+   * transfrom the state vector into measurement space.
+   * @param state_vector The state vector x which need to be transformed
+   *                     to measuremt space
+   * @param measurment_space Result
+   */
+  void Observe(const Eigen::VectorXd& state_vector,
+              Eigen::VectorXd& result);
+
 };
 
 #endif /* KALMAN_FILTER_H_ */

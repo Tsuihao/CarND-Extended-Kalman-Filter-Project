@@ -2,6 +2,7 @@
 #define TOOLS_H_
 #include <vector>
 #include "Eigen/Dense"
+#include <limits> //numberic_limits
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -28,6 +29,11 @@ public:
   * A helper method to calculate Jacobians.
   */
   MatrixXd CalculateJacobian(const VectorXd& x_state);
+
+  /**
+   * Check zero
+   */
+   bool isZero(double x);
 
 };
 
