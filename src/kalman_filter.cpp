@@ -13,13 +13,44 @@ KalmanFilter::~KalmanFilter() {}
 
 void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
                         MatrixXd &H_in, MatrixXd &R_in, MatrixXd &Q_in) {
+
+  Set_predict_params(x_in, P_in, F_in, Q_in);
+  Set_update_params(H_in, R_in);
+}
+
+void KalmanFilter::Init_predict(Eigen::VectorXd &x_in, Eigen::MatrixXd &P_in,
+                                Eigen::MatrixXd &F_in, Eigen::MatrixXd &Q_in) {
+
   x_ = x_in;
   P_ = P_in;
   F_ = F_in;
-  H_ = H_in;
-  R_ = R_in;
   Q_ = Q_in;
 }
+
+void KalmanFilter::Init_update(Eigen::VectorXd &H_in, Eigen::MatrixXd &R_in) {
+
+  H_ = H_in;
+  R_ = R_in;
+}
+
+void KalmanFilter::Set_x(const Eigen::VectorXd &x_in){
+
+  x_ = x_in;
+}
+
+void KalmanFilter::Set_P(const Eigen:;MatrixXd &P_in){
+
+  P_ = P_in;
+}
+
+const Eigen::VectorXd& KalmanFilter::Get_x() const{
+  return x_;
+}
+
+const Eigen::MatrixXd& KalmanFilter::Get_P() const{
+  return P_;
+}
+
 
 void KalmanFilter::Predict() {
   /**
@@ -30,31 +61,29 @@ void KalmanFilter::Predict() {
   P_ = F * P_ * F.transpose() + Q_;
 }
 
-void KalmanFilter::Update(const VectorXd &z) {
+void KalmanFilter::Update(const VectorXd &z, bool EKF=false) {
   /**
   TODO:
     * update the state by using Kalman Filter equations
   */
   Eigen::MatrixXd I = MatrixXd::Identity(4, 4);
-  y = z - H_ * x_;
-  S = R_ + H_ * P_ * H_.transpose();
-  K = P_ * H_.transpose() * S.inverse();
+  Eigen::VectorXd y = z; // use the dimension of z
+
+  if(EKF)
+  {
+    Eigen::VectorXd observation = z; // use the dimension of z
+    Observe(x_, observation);
+    y = z - observation;
+  }
+  else
+  {
+      y = z - H_ * x_;
+  }
+
+  Eigen::MatrixXd S = H_ * P_ * H_.transpose() + R_;
+  Eigen::MatrixXd K = P_ * H_.transpose() * S.inverse();
   x_ = x_ + K * y;
-  P_ = (I - K * H_) * P_ * (I - K * H_).transpose() + K * R _* K.transpose();
-
-}
-
-void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Extended Kalman Filter equations
-  */
-  Eigen::VectorXd observation = z; // use the dimension of z
-  Observe(x_, observation);
-  y = z - observation;
-
-
-
+  P_ = (I - K * H_) * P_;
 
 }
 

@@ -62,8 +62,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     */
     // first measurement
     cout << "EKF: initialize " << endl;
-    ekf_.x_ = VectorXd(4); // (Px, Py, Vx, Vy)
-    ekf_.x_ << 1, 1, 1, 1; // random init point
+    Eigen::VecotrXd x_init = VectorXd(4); // (Px, Py, Vx, Vy)
+    x_init << 1, 1, 1, 1; // random init point
+    ekf_.Set_x(x_init);
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
@@ -71,8 +72,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       */
       // fully trust first the sensor measurement in initalize state
       cout << "Radar: init" << endl;
-      Hj_ = tools.CalculateJacobian(ekf_.x_);
-      ekf_.x_ = Hj_.inverse() * measurement_pack.raw_measurements_;
+      Hj_ = tools.CalculateJacobian(ekf_.Get_x());
+      Eigen::VecotrXd x_temp = Hj_.inverse() * measurement_pack.raw_measurements_;
+      ekf_.Set_x(x_temp);
 
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -80,10 +82,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       Initialize state.
       */
       // fully trust first the sensor measurement in initalize state
-      // or "state_vector = H_laser^-1 * z_laser" -> computational expensive
       cout << "LiDar: init" << endl;
-      ekf_.x_(0) = measurement_pack.raw_measurements_(0);
-      ekf_.x_(1) = measurement_pack.raw_measurements_(1);
+      x_init(0) = measurement_pack.raw_measurements_(0); // re-write the Px of x_init
+      x_init(1) = measurement_pack.raw_measurements_(1); // re-write the Py of x_init
+      ekf_.Set_x(x_init);
     }
 
     // done initializing, no need to predict or update
@@ -104,6 +106,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
 
+
   ekf_.Predict();
 
   /*****************************************************************************
@@ -123,6 +126,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   }
 
   // print the output
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
+  cout << "x_ = " << ekf_.Get_x() << endl;
+  cout << "P_ = " << ekf_.Get_P() << endl;
 }

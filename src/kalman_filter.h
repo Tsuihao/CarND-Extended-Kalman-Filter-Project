@@ -4,25 +4,6 @@
 
 class KalmanFilter {
 public:
-
-  // state vector
-  Eigen::VectorXd x_;
-
-  // state covariance matrix
-  Eigen::MatrixXd P_;
-
-  // state transition matrix
-  Eigen::MatrixXd F_;
-
-  // process covariance matrix
-  Eigen::MatrixXd Q_;
-
-  // measurement matrix
-  Eigen::MatrixXd H_;
-
-  // measurement covariance matrix
-  Eigen::MatrixXd R_;
-
   /**
    * Constructor
    */
@@ -46,6 +27,24 @@ public:
       Eigen::MatrixXd &H_in, Eigen::MatrixXd &R_in, Eigen::MatrixXd &Q_in);
 
   /**
+   * Set the predict cycle parameters
+   * @param x_in State vector
+   * @param P_in State covariance
+   * @param F_in Transition matrix
+   * @param Q_in Process convariance
+   */
+  void Set_predict_params(Eigen::VectorXd &x_in, Eigen::MatrixXd &P_in,
+                          Eigen::MatrixXd &F_in, Eigen::MatrixXd &Q_in);
+
+
+   /**
+    * Set the update cycle parameters
+    * @param H_in Transformation matrix (state space -> measurement space)
+    * @param R_in Measurement covariance
+    */
+  void Set_update_params(Eigen::VectorXd &H_in, Eigen::MatrixXd &R_in);
+
+  /**
    * Prediction Predicts the state and the state covariance
    * using the process model
    * @param delta_T Time between k and k+1 in s
@@ -55,14 +54,30 @@ public:
   /**
    * Updates the state by using standard Kalman Filter equations
    * @param z The measurement at k+1
+   * @param EKF Flag to use EKF, the default is false;
    */
-  void Update(const Eigen::VectorXd &z);
+  void Update(const Eigen::VectorXd &z, bool EKF=false);
 
   /**
-   * Updates the state by using Extended Kalman Filter equations
-   * @param z The measurement at k+1
+   * Set state vector
    */
-  void UpdateEKF(const Eigen::VectorXd &z);
+  Void Set_x(const Eigen::VectorXd &x_in);
+
+  /**
+   * Set state covariance
+   */
+  Void Set_P(const Eigen:;MatrixXd &P_in);
+
+  /**
+   * Get state vector, for tracing
+   */
+  const Eigen::VectorXd& Get_x() const;
+
+  /**
+   * Get state covariance, for tracing
+   */
+  const Eigen::MatrixXd& Get_P() const;
+
 
 protected:
   /**
@@ -73,6 +88,15 @@ protected:
    */
   void Observe(const Eigen::VectorXd& state_vector,
               Eigen::VectorXd& result);
+
+private:
+  Eigen::VectorXd x_; // state vector
+  Eigen::MatrixXd P_; // state covariance matrix
+  Eigen::MatrixXd F_; // state transition matrix
+  Eigen::MatrixXd Q_; // process covariance matrix
+  Eigen::MatrixXd H_; // measurement matrix
+  Eigen::MatrixXd R_; // measurement covariance matrix
+
 
 };
 
