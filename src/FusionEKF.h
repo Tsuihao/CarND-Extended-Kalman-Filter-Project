@@ -31,6 +31,21 @@ public:
   */
   KalmanFilter ekf_;
 
+protected:
+  /**
+   * Calculate the transition matrix
+   * @param F Transition matrix
+   * @param dt Delta t
+   */
+  void Build_F(Eigen::MatrixXd& F, long long dt) const;
+
+  /**
+   * Calculate the process convariance matrix
+   * @param Q Process convariance matrix
+   * @param dt Delta t
+   */
+  void Build_Q(Eigen::MatrixXd& Q, long long dt) const;
+
 private:
   // check whether the tracking toolbox was initialized or not (first measurement)
   bool is_initialized_;

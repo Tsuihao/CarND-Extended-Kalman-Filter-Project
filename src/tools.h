@@ -33,7 +33,7 @@ public:
   /**
    * Check zero
    */
-   bool isZero(double x);
+  static bool isZero(double x);
 
 };
 

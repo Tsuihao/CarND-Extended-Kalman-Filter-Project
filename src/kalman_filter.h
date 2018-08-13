@@ -42,7 +42,7 @@ public:
     * @param H_in Transformation matrix (state space -> measurement space)
     * @param R_in Measurement covariance
     */
-  void Set_update_params(Eigen::VectorXd &H_in, Eigen::MatrixXd &R_in);
+  void Set_update_params(Eigen::MatrixXd &H_in, Eigen::MatrixXd &R_in);
 
   /**
    * Prediction Predicts the state and the state covariance
@@ -61,12 +61,12 @@ public:
   /**
    * Set state vector
    */
-  Void Set_x(const Eigen::VectorXd &x_in);
+  void Set_x(const Eigen::VectorXd &x_in);
 
   /**
    * Set state covariance
    */
-  Void Set_P(const Eigen:;MatrixXd &P_in);
+  void Set_P(const Eigen::MatrixXd &P_in);
 
   /**
    * Get state vector, for tracing

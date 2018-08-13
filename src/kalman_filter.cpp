@@ -1,5 +1,6 @@
 #include "kalman_filter.h"
 #include <cmath> // sqrt, atan2
+#include "tools.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -18,7 +19,7 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
   Set_update_params(H_in, R_in);
 }
 
-void KalmanFilter::Init_predict(Eigen::VectorXd &x_in, Eigen::MatrixXd &P_in,
+void KalmanFilter::Set_predict_params(Eigen::VectorXd &x_in, Eigen::MatrixXd &P_in,
                                 Eigen::MatrixXd &F_in, Eigen::MatrixXd &Q_in) {
 
   x_ = x_in;
@@ -27,7 +28,7 @@ void KalmanFilter::Init_predict(Eigen::VectorXd &x_in, Eigen::MatrixXd &P_in,
   Q_ = Q_in;
 }
 
-void KalmanFilter::Init_update(Eigen::VectorXd &H_in, Eigen::MatrixXd &R_in) {
+void KalmanFilter::Set_update_params(Eigen::MatrixXd &H_in, Eigen::MatrixXd &R_in) {
 
   H_ = H_in;
   R_ = R_in;
@@ -38,7 +39,7 @@ void KalmanFilter::Set_x(const Eigen::VectorXd &x_in){
   x_ = x_in;
 }
 
-void KalmanFilter::Set_P(const Eigen:;MatrixXd &P_in){
+void KalmanFilter::Set_P(const Eigen::MatrixXd &P_in){
 
   P_ = P_in;
 }
@@ -57,11 +58,11 @@ void KalmanFilter::Predict() {
   TODO:
     * predict the state
   */
-  x_ = F * x_;
-  P_ = F * P_ * F.transpose() + Q_;
+  x_ = F_ * x_;
+  P_ = F_ * P_ * F_.transpose() + Q_;
 }
 
-void KalmanFilter::Update(const VectorXd &z, bool EKF=false) {
+void KalmanFilter::Update(const VectorXd &z, bool EKF) {
   /**
   TODO:
     * update the state by using Kalman Filter equations
@@ -94,14 +95,14 @@ void KalmanFilter::Observe(const Eigen::VectorXd& state_vector,
   double vx = state_vector(2);
   double vy = state_vector(3);
 
-  double range = std::sqrt( px*px + py*py );
-  double bearing = std::atan2( py/px );
+  double range = std::sqrt( px*px + py*py);
+  double bearing = std::atan2(py, px);
   double range_rate;
 
-  if(!isZero(range))
+  if(!Tools::isZero(range))
     range_rate = (px*vx + py*vy)/range;
   else
-    range_rate = std::numeric_limites<double>::infinity();
+    range_rate = std::numeric_limits<double>::infinity();
 
   result<< range,
            bearing,

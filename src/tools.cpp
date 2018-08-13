@@ -31,14 +31,14 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
   double q_2 = px*px + py*py;
   double q_root = std::sqrt(q_2);
-  double q_3 = q2 * q_root;
+  double q_3 = q_2 * q_root;
 
   Eigen::MatrixXd J = MatrixXd(3,4);
 
-  if(isZero(q2))
+  if(isZero(q_2))
   {
     //TODO: Does this make sense?
-    double inf = std::numeric_limites<double>::infinity();
+    double inf = std::numeric_limits<double>::infinity();
 
     J << inf, inf, 0, 0,
          -inf, inf, 0, 0,
@@ -54,9 +54,9 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   }
 }
 
-bool Tools::isZero(doulbe x)
+bool Tools::isZero(double x)
 {
-  double EPS(std::numeric_limites<double>::epsilon());
+  double EPS(std::numeric_limits<double>::epsilon());
 
   if(std::abs(x - 0.0) <= EPS * std::abs(x))
   {
