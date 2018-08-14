@@ -1,7 +1,6 @@
 #include "kalman_filter.h"
 #include <cmath> // sqrt, atan2
 #include "tools.h"
-
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
@@ -59,7 +58,10 @@ void KalmanFilter::Predict() {
     * predict the state
   */
   x_ = F_ * x_;
+  if(verbose) {std::cout<<"[Kalman filter]: predict x_=\n"<<x_<<std::endl;}
   P_ = F_ * P_ * F_.transpose() + Q_;
+  if(verbose) {std::cout<<"[Kalman filter]: predict P_=\n"<<P_<<std::endl;}
+
 }
 
 void KalmanFilter::Update(const VectorXd &z, bool EKF) {
@@ -80,9 +82,15 @@ void KalmanFilter::Update(const VectorXd &z, bool EKF) {
   {
       y = z - H_ * x_;
   }
-
-  Eigen::MatrixXd S = H_ * P_ * H_.transpose() + R_;
-  Eigen::MatrixXd K = P_ * H_.transpose() * S.inverse();
+  if(verbose) std::cout<<"[Kalman filter]: y=\n"<<y<<std::endl;
+  Eigen::MatrixXd Ht = H_.transpose();
+  if(verbose) std::cout<<"[Kalman filter]: Ht=\n"<<Ht<<std::endl;
+  Eigen::MatrixXd S = H_ * P_ * Ht + R_;
+  if(verbose) std::cout<<"[Kalman filter]: S=\n"<<S<<std::endl;
+  Eigen::MatrixXd S_inv = S.inverse();
+  if(verbose) std::cout<<"[Kalman filter]: S_inv=\n"<<S_inv<<std::endl;
+  Eigen::MatrixXd K = P_ * Ht * S_inv;
+  if(verbose) std::cout<<"[Kalman filter]: K=\n"<<K<<std::endl;
   x_ = x_ + K * y;
   P_ = (I - K * H_) * P_;
 

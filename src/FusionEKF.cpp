@@ -1,7 +1,6 @@
 #include "FusionEKF.h"
 #include "tools.h"
 #include "Eigen/Dense"
-#include "config.h"
 #include <iostream>
 
 using namespace std;
@@ -81,6 +80,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       // fully trust first the sensor measurement in initalize state
       cout << "[FusionEKF]: Radar: init" << endl;
       Hj_ = tools.CalculateJacobian(ekf_.Get_x());
+      // TODO: ExtendedKF: /home/tsui/github/CarND-Extended-Kalman-Filter-Project/src/Eigen/src/LU/Inverse.h:323:
+      //const Eigen::internal::inverse_impl<Derived> Eigen::MatrixBase<Derived>::inverse()
+      //const [with Derived = Eigen::Matrix<double, -1, -1>]: Assertion `rows() == cols()' failed.
+
       Eigen::VectorXd x_temp = Hj_.inverse() * measurement_pack.raw_measurements_;
       ekf_.Set_x(x_temp);
 
@@ -117,15 +120,18 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   std::cout<<"[FusionEKF]: KF Predict [Start]"<<std::endl;
   long long t_prev = previous_timestamp_;
   long long t_curr = measurement_pack.timestamp_;
-  long long dt = t_curr - t_prev;
+  double dt = t_curr - t_prev;
+  dt/=1000000; //ms to s
 
-  std::cout<<"[FusionEKF]: Build Q and F matrix"<<std::endl;
+
+  std::cout<<"[FusionEKF]: Build Q and F matrix, with dt="<<dt<<std::endl;
 
   Eigen::MatrixXd Q = MatrixXd(4,4);
   Build_Q(Q, dt);
-
+  std::cout<<"[FusionEKF]: Q=\n"<<Q<<std::endl;
   Eigen::MatrixXd F = MatrixXd(4,4);
   Build_F(F, dt);
+  std::cout<<"[FusionEKF]: F=\n"<<Q<<std::endl;
 
   // Set x_, P_, Q_, F_
   // Get the result from previous cycle
@@ -149,22 +155,23 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   bool useEKF = false;
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // Radar updates
-    std::cout<<"[FusionEKF]: From Radar"<<std::endl;
+    std::cout<<"[FusionEKF]: From Radar, z=\n"<<measurement_pack.raw_measurements_<<std::endl;
     Hj_ = tools.CalculateJacobian(x_prev);
+    std::cout<<"[FusionEKF]: Hj_=\n"<<Hj_<<std::endl;
     ekf_.Set_update_params(Hj_, R_radar_);
     useEKF = true;
     ekf_.Update(measurement_pack.raw_measurements_, useEKF);
 
   } else {
     // Laser updates
-    std::cout<<"[FusionEKF]: From Laser"<<std::endl;
+    std::cout<<"[FusionEKF]: From Laser, z=\n"<<measurement_pack.raw_measurements_<<std::endl;
     ekf_.Set_update_params(H_laser_, R_laser_);
     ekf_.Update(measurement_pack.raw_measurements_, useEKF);
   }
   std::cout<<"[FusionEKF]: KF Update [Completed]"<<std::endl;
   // print the output
-  cout << "[FusionEKF]: x_ = " << ekf_.Get_x() << endl;
-  cout << "[FusionEKF]: P_ = " << ekf_.Get_P() << endl;
+  cout << "[FusionEKF]: x_ = \n" << ekf_.Get_x() << endl;
+  cout << "[FusionEKF]: P_ = \n" << ekf_.Get_P() << endl;
 }
 
 void FusionEKF::Build_F(Eigen::MatrixXd& F, long long dt) const {
