@@ -59,7 +59,8 @@ void KalmanFilter::Predict() {
   */
   x_ = F_ * x_;
   if(verbose) {std::cout<<"[Kalman filter]: predict x_=\n"<<x_<<std::endl;}
-  P_ = F_ * P_ * F_.transpose() + Q_;
+  MatrixXd Ft = F_.transpose();
+  P_ = F_ * P_ * Ft + Q_;
   if(verbose) {std::cout<<"[Kalman filter]: predict P_=\n"<<P_<<std::endl;}
 
 }

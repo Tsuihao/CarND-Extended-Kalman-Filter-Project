@@ -37,14 +37,14 @@ protected:
    * @param F Transition matrix
    * @param dt Delta t
    */
-  void Build_F(Eigen::MatrixXd& F, long long dt) const;
+  void Build_F(Eigen::MatrixXd& F, double dt) const;
 
   /**
    * Calculate the process convariance matrix
    * @param Q Process convariance matrix
    * @param dt Delta t
    */
-  void Build_Q(Eigen::MatrixXd& Q, long long dt) const;
+  void Build_Q(Eigen::MatrixXd& Q, double dt) const;
 
 private:
   // check whether the tracking toolbox was initialized or not (first measurement)

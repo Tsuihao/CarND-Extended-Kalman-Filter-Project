@@ -122,7 +122,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   long long t_curr = measurement_pack.timestamp_;
   double dt = t_curr - t_prev;
   dt/=1000000; //ms to s
-
+  previous_timestamp_ = t_curr; //update
 
   std::cout<<"[FusionEKF]: Build Q and F matrix, with dt="<<dt<<std::endl;
 
@@ -174,7 +174,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   cout << "[FusionEKF]: P_ = \n" << ekf_.Get_P() << endl;
 }
 
-void FusionEKF::Build_F(Eigen::MatrixXd& F, long long dt) const {
+void FusionEKF::Build_F(Eigen::MatrixXd& F, double dt) const {
 
   F << 1, 0, dt,  0,
        0, 1,  0, dt,
@@ -182,14 +182,14 @@ void FusionEKF::Build_F(Eigen::MatrixXd& F, long long dt) const {
        0, 0,  0,  1;
 }
 
-void FusionEKF::Build_Q(Eigen::MatrixXd& Q, long long dt) const {
+void FusionEKF::Build_Q(Eigen::MatrixXd& Q, double dt) const {
 
   double noise_ax = 9;
   double noise_ay = 9;
 
-  long long dt_2 = dt * dt;
-  long long dt_3 = dt_2 * dt;
-  long long dt_4 = dt_2 * dt_2;
+  double dt_2 = dt * dt;
+  double dt_3 = dt_2 * dt;
+  double dt_4 = dt_2 * dt_2;
 
   double qx_1 = dt_4 * noise_ax / 4;
   double qx_2 = dt_3 * noise_ax / 2;
