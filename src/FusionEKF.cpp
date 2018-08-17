@@ -62,9 +62,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     */
     // first measurement
     cout << "[FusionEKF]: initialize " << endl;
-    Eigen::VectorXd x_init = VectorXd(4); // (Px, Py, Vx, Vy)
-    x_init << 1, 1, 1, 1; // random init point
-    ekf_.Set_x(x_init);
 
     Eigen::MatrixXd P_init = MatrixXd(4, 4);
     P_init << 100, 0 , 0, 0,
@@ -84,8 +81,15 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       //const Eigen::internal::inverse_impl<Derived> Eigen::MatrixBase<Derived>::inverse()
       //const [with Derived = Eigen::Matrix<double, -1, -1>]: Assertion `rows() == cols()' failed.
 
-      Eigen::VectorXd x_temp = Hj_.inverse() * measurement_pack.raw_measurements_;
-      ekf_.Set_x(x_temp);
+      Eigen::VectorXd x_init = VectorXd(4); // (Px, Py, Vx, Vy);
+      double rho = measurement_pack.raw_measurements_(0);
+      double phi = measurement_pack.raw_measurements_(1);
+
+      x_init<< rho * cos(phi), // Px
+               rho * sin(phi), // Py
+               0,
+               0;
+      ekf_.Set_x(x_init);
 
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -94,8 +98,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       */
       // fully trust first the sensor measurement in initalize state
       cout << "[FusionEKF]: LiDar: init" << endl;
-      x_init(0) = measurement_pack.raw_measurements_(0); // re-write the Px of x_init
-      x_init(1) = measurement_pack.raw_measurements_(1); // re-write the Py of x_init
+      Eigen::VectorXd x_init = VectorXd(4); // (Px, Py, Vx, Vy);
+      x_init<< measurement_pack.raw_measurements_(0), // Px
+               measurement_pack.raw_measurements_(1), // Py
+               0,
+               0;
       ekf_.Set_x(x_init);
     }
 
@@ -152,20 +159,20 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      * Update the state and covariance matrices.
    */
   std::cout<<"[FusionEKF]: KF Update [Start]"<<std::endl;
-  bool useEKF = false;
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // Radar updates
     std::cout<<"[FusionEKF]: From Radar, z=\n"<<measurement_pack.raw_measurements_<<std::endl;
     Hj_ = tools.CalculateJacobian(x_prev);
     std::cout<<"[FusionEKF]: Hj_=\n"<<Hj_<<std::endl;
     ekf_.Set_update_params(Hj_, R_radar_);
-    useEKF = true;
+    bool useEKF = true;
     ekf_.Update(measurement_pack.raw_measurements_, useEKF);
 
   } else {
     // Laser updates
     std::cout<<"[FusionEKF]: From Laser, z=\n"<<measurement_pack.raw_measurements_<<std::endl;
     ekf_.Set_update_params(H_laser_, R_laser_);
+    bool useEKF = false;
     ekf_.Update(measurement_pack.raw_measurements_, useEKF);
   }
   std::cout<<"[FusionEKF]: KF Update [Completed]"<<std::endl;
