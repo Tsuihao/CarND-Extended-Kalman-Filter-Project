@@ -70,18 +70,22 @@ void KalmanFilter::Update(const VectorXd &z, bool EKF) {
   TODO:
     * update the state by using Kalman Filter equations
   */
-  Eigen::MatrixXd I = MatrixXd::Identity(4, 4);
+  Eigen::MatrixXd I = MatrixXd::Identity(x_.size(), x_.size());
   Eigen::VectorXd y = z; // use the dimension of z
 
   if(EKF)
   {
-    Eigen::VectorXd observation = z; // use the dimension of z
+    Eigen::VectorXd observation = VectorXd(z.size());
     Observe(x_, observation);
     y = z - observation;
+
+    // normalized the phi(bearing) between -PI and PI 
+    while (y(1)>M_PI) {y(1) -= 2 * M_PI;}
+    while (y(1)<-M_PI) {y(1) += 2 * M_PI;}
   }
   else
   {
-      y = z - H_ * x_;
+      y = z - (H_ * x_);
   }
   if(verbose) std::cout<<"[Kalman filter]: y=\n"<<y<<std::endl;
   Eigen::MatrixXd Ht = H_.transpose();

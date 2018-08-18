@@ -40,6 +40,19 @@ FusionEKF::FusionEKF() {
                0, 1, 0, 0;
 
   // Hj_ can not be initailized due to lack of measuremnts.
+  // X_
+  Eigen::VectorXd x_init = VectorXd(4);
+  x_init << 1, 1, 1, 1;
+  ekf_.Set_x(x_init);
+
+  // P_
+  Eigen::MatrixXd P_init = MatrixXd(4, 4);
+  P_init << 100, 0, 0, 0,
+            0, 100, 0, 0,
+            0, 0, 9, 0,
+            0, 0, 0, 9;
+  ekf_.Set_P(P_init);
+
 }
 
 /**
@@ -48,8 +61,6 @@ FusionEKF::FusionEKF() {
 FusionEKF::~FusionEKF() {}
 
 void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
-
-
   /*****************************************************************************
    *  Initialization
    ****************************************************************************/
@@ -62,29 +73,16 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     */
     // first measurement
     cout << "[FusionEKF]: initialize " << endl;
-
-    Eigen::MatrixXd P_init = MatrixXd(4, 4);
-    P_init << 100, 0 , 0, 0,
-              0, 100, 0, 0,
-              0,  0,  9, 0,
-              0,  0,  0, 9;
-    ekf_.Set_P(P_init);
-
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
       Convert radar from polar to cartesian coordinates and initialize state.
       */
       // fully trust first the sensor measurement in initalize state
-      cout << "[FusionEKF]: Radar: init" << endl;
       Hj_ = tools.CalculateJacobian(ekf_.Get_x());
-      // TODO: ExtendedKF: /home/tsui/github/CarND-Extended-Kalman-Filter-Project/src/Eigen/src/LU/Inverse.h:323:
-      //const Eigen::internal::inverse_impl<Derived> Eigen::MatrixBase<Derived>::inverse()
-      //const [with Derived = Eigen::Matrix<double, -1, -1>]: Assertion `rows() == cols()' failed.
 
       Eigen::VectorXd x_init = VectorXd(4); // (Px, Py, Vx, Vy);
       double rho = measurement_pack.raw_measurements_(0);
       double phi = measurement_pack.raw_measurements_(1);
-
       x_init<< rho * cos(phi), // Px
                rho * sin(phi), // Py
                0,
@@ -162,7 +160,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // Radar updates
     std::cout<<"[FusionEKF]: From Radar, z=\n"<<measurement_pack.raw_measurements_<<std::endl;
-    Hj_ = tools.CalculateJacobian(x_prev);
+    Hj_ = tools.CalculateJacobian(ekf_.Get_x());
     std::cout<<"[FusionEKF]: Hj_=\n"<<Hj_<<std::endl;
     ekf_.Set_update_params(Hj_, R_radar_);
     bool useEKF = true;
